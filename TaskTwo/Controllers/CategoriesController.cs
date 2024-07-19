@@ -58,8 +58,7 @@ namespace TaskTwo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create( Category category )
         {
-            if (ModelState.IsValid)
-            {
+            
                 if (category.ImageFile != null)
                 {
                     string wwwRootPath = _webHostEnvironment.WebRootPath;
@@ -78,8 +77,8 @@ namespace TaskTwo.Controllers
                 _context.Add(category);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
-            }
-            return View(category);
+            
+            
         }
 
         // GET: Categories/Edit/5

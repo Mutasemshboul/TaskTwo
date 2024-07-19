@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,13 @@ namespace TaskTwo.Controllers
     public class ProductsController : Controller
     {
         private readonly MyDbContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductsController(MyDbContext context)
+
+        public ProductsController(MyDbContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Products
@@ -57,16 +61,31 @@ namespace TaskTwo.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,ProductName,ProductPrice,ProductImage,ProductDescription,ProductCategoryID")] Product product)
+        public async Task<IActionResult> Create( Product product)
         {
-            if (ModelState.IsValid)
+
+            if (product.ImageFile != null)
             {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                string wwwRootPath = _webHostEnvironment.WebRootPath;
+
+                string fileName = Guid.NewGuid().ToString() + product.ImageFile.FileName;
+
+                string path = Path.Combine(wwwRootPath + "/Image/" + fileName);
+
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await product.ImageFile.CopyToAsync(fileStream);
+                }
+
+                product.ProductImage = fileName;
             }
+
+
+            _context.Add(product);
+                await _context.SaveChangesAsync();
             ViewData["ProductCategoryID"] = new SelectList(_context.Category, "Id", "CategoryName", product.ProductCategoryID);
-            return View(product);
+            return RedirectToAction(nameof(Index));
+            
         }
 
         // GET: Products/Edit/5

@@ -18,6 +18,6 @@ namespace TaskTwo.Models
 
         public string CategoryImage { get; set; }
 
-        public ICollection<Product> Products { get; set; }
+        
     }
 }
